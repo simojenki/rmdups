@@ -2,7 +2,7 @@
 
 tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
-trap "rm -Rf ${tmp}" EXIT
+#trap "rm -Rf ${tmp}" EXIT
 
 passed=0
 failed=0
@@ -17,17 +17,15 @@ function print_test_summary() {
 
 function assert_e() {
 	while (( "$#" )); do
-		local file=$1	
+		local file=$1; shift	
 		[[ -e "${file}" ]] && pass "${file} exists" || fail "Expected ${file} to exist, but it doesn't"
-		shift
 	done
 }
 
 function assert_ne() {
 	while (( "$#" )); do
-		local file=$1	
+		local file=$1; shift	
 		[[ ! -e "${file}" ]] && pass "${file} does not exist" || fail "Expected ${file} to be non-existent, but it would appear to be present..."
-		shift
 	done
 }
 
@@ -36,12 +34,10 @@ dup1=${tmp}/dup1
 dup2=${tmp}/dup2
 
 function mkf() {
-	local content=$1
-	shift
+	local content=$1; shift
 	while (( "$#" )); do
-		local path=$1
+		local path=$1; shift
 		mkdir -p $(dirname ${path}) && echo ${content} > ${path}
-		shift
 	done
 }
 
@@ -49,20 +45,22 @@ mkdir -p ${master} ${dup1} ${dup2} || { echo "failed to create initial paths" &&
 
 function testSimpleCaseWithNoDirectories() {\
 	mkf "simple"	"${master}/simple" \
-					"${dup1}/simple.txt" \
+					"${dup1}/simple" \
 					"${dup2}/simple.jpg"
 
 	assert_e	"${master}/simple" \
-				"${dup1}/simple.txt" \
+				"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 
 	./rmdups.sh "${master}" "${dup1}" "${dup2}"
 
 	assert_e	"${master}/simple"
 
-	assert_ne	"${dup1}/simple.txt" \
+	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 }
+
+
 
 testSimpleCaseWithNoDirectories
 
