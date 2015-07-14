@@ -4,6 +4,9 @@ tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
 trap "rm -Rf ${tmp}" EXIT
 
+passed=0
+failed=0
+
 master=${tmp}/master
 dup1=${tmp}/dup1
 dup2=${tmp}/dup2
@@ -18,10 +21,18 @@ function mkf() {
 	done
 }
 
+function pass() { let passed+=1; echo "."; }
+function fail() { let failed+=1; echo "X: $1"; }
+function print_test_summary() {
+	echo "------"
+	printf "passed=${passed}\nfailed=${failed}\n"		
+	echo "------"
+}
+
 function assert_e() {
 	while (( "$#" )); do
 		local file=$1	
-		[[ -e "${file}" ]] || { echo "Expected ${file} to exist, but it doesn't" && exit 1; }
+		[[ -e "${file}" ]] && pass "${file} exists" || fail "Expected ${file} to exist, but it doesn't"
 		shift
 	done
 }
@@ -29,7 +40,7 @@ function assert_e() {
 function assert_ne() {
 	while (( "$#" )); do
 		local file=$1	
-		[[ -e "${file}" ]] || { echo "Expected ${file} to exist, but it doesn't" && exit 1; }
+		[[ -e "${file}" ]] && pass "${file} does not exist" || fail "Expected ${file} to be non-existent, but it would appear to be present..."
 		shift
 	done
 }
@@ -55,5 +66,5 @@ assert_ne 	"${dup1}/someDir/someFile.txt" \
 		"${dup2}/someDir/.someHiddenDir/.someHiddenFile.jpg" 
 
 
-
-
+print_test_summary
+[[ ${failed} == 0 ]] && exit 0 || exit 1
