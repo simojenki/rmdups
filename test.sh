@@ -31,7 +31,6 @@ function assert_ne() {
 	done
 }
 
-
 master=${tmp}/master
 dup1=${tmp}/dup1
 dup2=${tmp}/dup2
@@ -48,24 +47,26 @@ function mkf() {
 
 mkdir -p ${master} ${dup1} ${dup2} || { echo "failed to create initial paths" && exit 1 ; }
 
-mkf "content1"	"${master}/file1" \
-		"${master}/dir1/file1" \
-		"${dup1}/someDir/someFile.txt" \
-		"${dup2}/someDir/.someHiddenDir/.someHiddenFile.jpg"
+function testSimpleCaseWithNoDirectories() {\
+	mkf "simple"	"${master}/simple" \
+					"${dup1}/simple.txt" \
+					"${dup2}/simple.jpg"
 
-assert_e 	"${master}/file1" \
-	 	"${master}/dir1/file1" \
-		"${dup1}/someDir/someFile.txt" \
-		"${dup2}/someDir/.someHiddenDir/.someHiddenFile.jpg" 
+	assert_e	"${master}/simple" \
+				"${dup1}/simple.txt" \
+				"${dup2}/simple.jpg"
 
-./rmdups.sh "${master}" "${dup1}" "${dup2}"
+	./rmdups.sh "${master}" "${dup1}" "${dup2}"
 
-assert_e 	"${master}/file1" \
-	 	"${master}/dir1/file1" 
+	assert_e	"${master}/simple"
 
-assert_ne 	"${dup1}/someDir/someFile.txt" \
-		"${dup2}/someDir/.someHiddenDir/.someHiddenFile.jpg" 
+	assert_ne	"${dup1}/simple.txt" \
+				"${dup2}/simple.jpg"
+}
 
+testSimpleCaseWithNoDirectories
 
 print_test_summary
 [[ ${failed} == 0 ]] && exit 0 || exit 1
+
+
