@@ -7,20 +7,6 @@ trap "rm -Rf ${tmp}" EXIT
 passed=0
 failed=0
 
-master=${tmp}/master
-dup1=${tmp}/dup1
-dup2=${tmp}/dup2
-
-function mkf() {
-	local content=$1
-	shift
-	while (( "$#" )); do
-		local path=$1
-		mkdir -p $(dirname ${path}) && echo ${content} > ${path}
-		shift
-	done
-}
-
 function pass() { let passed+=1; echo "."; }
 function fail() { let failed+=1; echo "X: $1"; }
 function print_test_summary() {
@@ -40,7 +26,22 @@ function assert_e() {
 function assert_ne() {
 	while (( "$#" )); do
 		local file=$1	
-		[[ -e "${file}" ]] && pass "${file} does not exist" || fail "Expected ${file} to be non-existent, but it would appear to be present..."
+		[[ ! -e "${file}" ]] && pass "${file} does not exist" || fail "Expected ${file} to be non-existent, but it would appear to be present..."
+		shift
+	done
+}
+
+
+master=${tmp}/master
+dup1=${tmp}/dup1
+dup2=${tmp}/dup2
+
+function mkf() {
+	local content=$1
+	shift
+	while (( "$#" )); do
+		local path=$1
+		mkdir -p $(dirname ${path}) && echo ${content} > ${path}
 		shift
 	done
 }
