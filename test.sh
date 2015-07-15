@@ -52,7 +52,7 @@ function testSimpleCaseWithNoDirectories() {\
 				"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 
-	./rmdups.sh "${master}" "${dup1}" "${dup2}"
+	./rmdups "${master}" "${dup1}" "${dup2}"
 
 	assert_e	"${master}/simple"
 
