@@ -46,10 +46,14 @@ mkdir -p ${master} ${dup1} ${dup2} || { echo "failed to create initial paths" &&
 function testSimpleCaseWithNoDirectories() {\
 	mkf "simple"	"${master}/simple" \
 					"${dup1}/simple" \
+					"${dup1}/fileToKeep1" \
+					"${dup2}/fileToKeep2" \
 					"${dup2}/simple.jpg"
 
 	assert_e	"${master}/simple" \
 				"${dup1}/simple" \
+				"${dup1}/fileToKeep1" \
+				"${dup2}/fileToKeep2" \
 				"${dup2}/simple.jpg"
 
 	./rmdups "${master}" "${dup1}" "${dup2}"
@@ -61,8 +65,30 @@ function testSimpleCaseWithNoDirectories() {\
 }
 
 
+function testCaseWithDirectories() {\
+	mkf "dirs"	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob"
+
+	assert_e	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob"
+
+	./rmdups "${master}" "${dup1}" "${dup2}"
+
+	assert_e	"${master}/file1"
+
+	assert_ne	"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob"
+}
+
+
 
 testSimpleCaseWithNoDirectories
+testCaseWithDirectories
 
 print_test_summary
 [[ ${failed} == 0 ]] && exit 0 || exit 1
