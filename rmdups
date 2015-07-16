@@ -19,9 +19,9 @@ function makeHashes() {
 	local path=$1
 	local stdout=$2
 	echo "Generating hashes for ${path} into ${stdout}"
-	which md5sum && 
-		find "${path}" -type f | parallel --eta md5sum {} 1> "${stdout}" 2>/dev/null ||
-		find "${path}" -type f | parallel --eta md5 -r {} 1> "${stdout}" 2>/dev/null		
+	which md5sum &>/dev/null && 
+		find "${path}" -type f | parallel --jobs +2 --eta md5sum {} 1> "${stdout}" 2>/dev/null ||
+		find "${path}" -type f | parallel --jobs +2 --eta md5 -r {} 1> "${stdout}" 2>/dev/null		
 	echo "Total files in '${path}' == $(cat "${stdout}" | wc -l)"
 }
 function duplicate() {	
