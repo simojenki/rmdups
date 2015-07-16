@@ -29,6 +29,10 @@ function assert_ne() {
 	done
 }
 
+function assert_matches() {
+	echo "$1" | grep -G "$2" &>/dev/null && pass "$1 matches $2" || fail "Expected '$1' to match '$2'."
+}
+
 master=${tmp}/master
 dup1=${tmp}/dup1
 dup2="${tmp}/dup 2"
@@ -57,7 +61,7 @@ function testSimpleCaseWithNoDirectories() {
 				"${dup2}/fileToKeep2" \
 				"${dup2}/simple.jpg"
 
-	./rmdups "${master}" "${dup1}" "${dup2}"
+	out=$(./rmdups "${master}" "${dup1}" "${dup2}")
 
 	assert_e	"${master}/simple" \
 				"${dup1}/fileToKeep1" \
@@ -65,6 +69,8 @@ function testSimpleCaseWithNoDirectories() {
 
 	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
+	
+	assert_matches "${out}" "Total files processed = 4, duplicates removed = 2, unique files = 2"
 }
 
 
@@ -74,31 +80,31 @@ function testCaseWithDirectories() {
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob"
 
-	mkf "keep"	"${master}/keep" \
-				"${dup1}/directory/keep1" \
+	mkf "keep"  "${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
 
 	assert_e	"${master}/file1" \
 				"${dup1}/directory/file1" \
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob" \
-				"${master}/keep" \
 				"${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
 
-	./rmdups "${master}" "${dup1}" "${dup2}"
+	out=$(./rmdups "${master}" "${dup1}" "${dup2}")
 
 	assert_e	"${master}/file1" \
-				"${master}/keep" \
 				"${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
 
 	assert_ne	"${dup1}/directory/file1" \
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob"
+				
+	assert_matches "${out}" "Total files processed = 5, duplicates removed = 3, unique files = 2"				
 }
 
 testSimpleCaseWithNoDirectories
+rm -Rf ${tmp}/*
 testCaseWithDirectories
 
 print_test_summary
