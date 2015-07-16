@@ -5,21 +5,27 @@ tmp=$(mktemp -d)
 
 echo "Using tmp dir ${tmp}"
 
+dryrun="false"
+[[ "$1" == "-d" ]] && dryrun="true" && shift
+
 master=$1; shift
 master_md5s="${tmp}/master.md5s"
 dup_md5s="${tmp}/dups.md5s"
 dup_count=0
+rm_count=0
 uniq_count=0
 
 function makeHashes() {
 	local path=$1
 	local stdout=$2
 	echo "Generating hashes for ${path} into ${stdout}"
-	find . -type f
-	find "${path}" -type f | parallel --eta md5sum {} 1> "${stdout}"	
+	find "${path}" -type f | parallel md5sum {} 1> "${stdout}"	
 	echo "Total files in '${path}' == $(cat "${stdout}" | wc -l)"
 }
-function duplicate() {	let dup_count+=1; rm "$1"; }
+function duplicate() {	
+	let dup_count+=1
+	if [[ "${dryrun}" == "false" ]]; then let rm_count+=1 && rm "$1"; fi		
+}
 function unqiue() {	let uniq_count+=1; }
 
 makeHashes "${master}" "${master_md5s}" || exit 1
@@ -31,9 +37,11 @@ while (( "$#" )); do
 	while read i; do 
 		hash="$(echo "$i" | cut -d ' ' -f 1)"
 		file="$(echo "$i" | cut --complement -d ' ' -f 1 | sed -e 's/^[[:space:]]*//')"
-		grep "${hash}" "${master_md5s}" && duplicate "${file}" || unqiue "${file}"
+		grep "${hash}" "${master_md5s}" &>/dev/null && duplicate "${file}" || unqiue "${file}"
 	done < "${dup_md5s}"
 done
 
-echo "Total files processed = $[dup_count + uniq_count], duplicates removed = ${dup_count}, unique files = ${uniq_count}"
+msg="Total files processed = $[dup_count + uniq_count], duplicates = ${dup_count}, unique files = ${uniq_count}, removed = ${rm_count}"
+[[ "${dryrun}" == "true" ]] && msg="${msg} (dry run)"
+echo "${msg}"
 

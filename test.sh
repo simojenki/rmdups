@@ -14,6 +14,7 @@ function print_test_summary() {
 	printf "passed=${passed}\nfailed=${failed}\n"		
 	echo "------"
 }
+function cleanup() { rm -Rf "${master}" "${dup1}" "${dup2}"; }
 
 function assert_e() {
 	while (( "$#" )); do
@@ -61,7 +62,7 @@ function testSimpleCaseWithNoDirectories() {
 				"${dup2}/fileToKeep2" \
 				"${dup2}/simple.jpg"
 
-	out=$(./rmdups "${master}" "${dup1}" "${dup2}")
+	out=$(./rmdups "${master}" "${dup1}" "${dup2}" 2>&1)
 
 	assert_e	"${master}/simple" \
 				"${dup1}/fileToKeep1" \
@@ -70,7 +71,7 @@ function testSimpleCaseWithNoDirectories() {
 	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 	
-	assert_matches "${out}" "Total files processed = 4, duplicates removed = 2, unique files = 2"
+	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
 }
 
 
@@ -90,7 +91,7 @@ function testCaseWithDirectories() {
 				"${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
 
-	out=$(./rmdups "${master}" "${dup1}" "${dup2}")
+	out=$(./rmdups "${master}" "${dup1}" "${dup2}" 2>&1)
 
 	assert_e	"${master}/file1" \
 				"${dup1}/directory/keep1" \
@@ -100,12 +101,43 @@ function testCaseWithDirectories() {
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob"
 				
-	assert_matches "${out}" "Total files processed = 5, duplicates removed = 3, unique files = 2"				
+	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 3"				
+}
+
+function testUsingDryRunDoesntDeleteAnything() {
+	mkf "dirs"	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob"
+
+	mkf "keep"  "${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	assert_e	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	out=$(./rmdups -d "${master}" "${dup1}" "${dup2}" 2>&1)
+
+	assert_e	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+				
+	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
 }
 
 testSimpleCaseWithNoDirectories
-rm -Rf ${tmp}/*
+cleanup
 testCaseWithDirectories
+cleanup
+testUsingDryRunDoesntDeleteAnything
+cleanup
 
 print_test_summary
 [[ ${failed} == 0 ]] && exit 0 || exit 1
