@@ -2,7 +2,7 @@
 
 tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
-#trap "rm -Rf ${tmp}" EXIT
+trap "rm -Rf ${tmp}" EXIT
 
 passed=0
 failed=0
@@ -31,24 +31,25 @@ function assert_ne() {
 
 master=${tmp}/master
 dup1=${tmp}/dup1
-dup2=${tmp}/dup2
+dup2="${tmp}/dup 2"
 
 function mkf() {
-	local content=$1; shift
+	local content="$1"; shift
 	while (( "$#" )); do
-		local path=$1; shift
-		mkdir -p $(dirname ${path}) && echo ${content} > ${path}
+		local path="$1"; shift
+		mkdir -p "$(dirname "${path}")" && echo "${content}" > "${path}"
 	done
 }
 
 mkdir -p ${master} ${dup1} ${dup2} || { echo "failed to create initial paths" && exit 1 ; }
 
-function testSimpleCaseWithNoDirectories() {\
+function testSimpleCaseWithNoDirectories() {
 	mkf "simple"	"${master}/simple" \
 					"${dup1}/simple" \
-					"${dup1}/fileToKeep1" \
-					"${dup2}/fileToKeep2" \
 					"${dup2}/simple.jpg"
+
+	mkf "toKeep"	"${dup1}/fileToKeep1" \
+					"${dup2}/fileToKeep2"
 
 	assert_e	"${master}/simple" \
 				"${dup1}/simple" \
@@ -58,34 +59,44 @@ function testSimpleCaseWithNoDirectories() {\
 
 	./rmdups "${master}" "${dup1}" "${dup2}"
 
-	assert_e	"${master}/simple"
+	assert_e	"${master}/simple" \
+				"${dup1}/fileToKeep1" \
+				"${dup2}/fileToKeep2"
 
 	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 }
 
 
-function testCaseWithDirectories() {\
+function testCaseWithDirectories() {
 	mkf "dirs"	"${master}/file1" \
 				"${dup1}/directory/file1" \
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob"
 
+	mkf "keep"	"${master}/keep" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
 	assert_e	"${master}/file1" \
 				"${dup1}/directory/file1" \
 				"${dup2}/directory2/file1.jpg" \
-				"${dup2}/directory3/file1.bob"
+				"${dup2}/directory3/file1.bob" \
+				"${master}/keep" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
 
 	./rmdups "${master}" "${dup1}" "${dup2}"
 
-	assert_e	"${master}/file1"
+	assert_e	"${master}/file1" \
+				"${master}/keep" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
 
 	assert_ne	"${dup1}/directory/file1" \
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob"
 }
-
-
 
 testSimpleCaseWithNoDirectories
 testCaseWithDirectories

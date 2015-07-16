@@ -1,9 +1,22 @@
 #!/bin/bash
 
+tmp=$(mktemp -d)
+trap "rm -Rf ${tmp}" EXIT
+
+echo "Using tmp dir ${tmp}"
+
+function makeHashes() {
+	local path=$1
+	local stdout=$2
+	echo "Generating hashes for ${path} into ${stdout}"
+	find "${path}" -type f -exec md5sum {} \; > "${stdout}"	
+}
+
 master=$1; shift
+makeHashes "${master}" ${tmp}/master.md5s
 
 while (( "$#" )); do
 	duplicates=$1; shift	
-	rm -Rf ${duplicates}
+	makeHashes "${duplicates}" ${tmp}/dups.md5s
 done
 
