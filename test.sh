@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
