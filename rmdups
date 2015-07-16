@@ -38,7 +38,7 @@ while (( "$#" )); do
 	
 	while read i; do 
 		hash="$(echo "$i" | cut -d ' ' -f 1)"
-		file="$(echo "$i" | cut --complement -d ' ' -f 1 | sed -e 's/^[[:space:]]*//')"
+		file="$(echo "$i" | sed -e "s/${hash}[[:space:]]*//")"
 		grep "${hash}" "${master_md5s}" &>/dev/null && duplicate "${file}" || unqiue "${file}"
 	done < "${dup_md5s}"
 done
