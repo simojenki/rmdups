@@ -16,6 +16,10 @@ function print_test_summary() {
 }
 function cleanup() { rm -Rf "${master}" "${dup1}" "${dup2}"; }
 
+function assert_eq() {
+	[[ $1 == $2 ]] && pass || fail "Expected $1 == $2"  
+}
+
 function assert_e() {
 	while (( "$#" )); do
 		local file=$1; shift	
@@ -132,12 +136,63 @@ function testUsingDryRunDoesntDeleteAnything() {
 	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
 }
 
+function runningItWithAMasterDirectoryThatDoesntExistFails() {
+	mkdir -p ${tmp}/exists
+	out=$(./rmdups ${tmp}/path/that/doesnt/exist ${tmp}/exists 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Directory ${tmp}/path/that/doesnt/exist doesn't exist"				
+}
+
+function runningItWithADuplicateDirectoryThatDoesntExistFails() {
+	mkdir -p ${tmp}/exists
+	out=$(./rmdups ${tmp}/exists ${tmp}/path/that/doesnt/exist 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Directory ${tmp}/path/that/doesnt/exist doesn't exist"				
+}
+
+function runningItWithAMasterPathSameAsADuplicatePathCausesItToDie() {
+	mkf "file1"	"${master}/file1" \
+				"${dup1}/file1" 
+
+	out=$(./rmdups ${master} ${master} 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Master path and duplicate(s) path are the same!"				
+}
+
+function runningItWithAMasterPathSameAsADuplicatePathCausesItToDie2() {
+	mkf "file1"	"${master}/file1" \
+				"${dup1}/file1" 
+
+	out=$(./rmdups ${master} ${dup1} ${master} 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Master path and duplicate(s) path are the same!"				
+}
+
+function runningItWithAMasterPathSameAsADuplicatePathCausesItToDie3() {
+	mkf "file1"	"${master}/file1" \
+				"${dup1}/file1" 
+
+	out=$(./rmdups ${master} ${dup1} ${master}/../master 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Master path and duplicate(s) path are the same!"				
+}
+
+
 testSimpleCaseWithNoDirectories
 cleanup
 testCaseWithDirectories
 cleanup
 testUsingDryRunDoesntDeleteAnything
 cleanup
+runningItWithAMasterDirectoryThatDoesntExistFails
+cleanup
+runningItWithAMasterPathSameAsADuplicatePathCausesItToDie
+cleanup
+runningItWithAMasterPathSameAsADuplicatePathCausesItToDie2
+cleanup
+runningItWithAMasterPathSameAsADuplicatePathCausesItToDie3
+cleanup
+
 
 print_test_summary
 [[ ${failed} == 0 ]] && exit 0 || exit 1

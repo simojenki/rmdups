@@ -2,11 +2,24 @@
 
 tmp=$(mktemp -d)
 trap "rm -Rf ${tmp}" EXIT
-
 echo "Using tmp dir ${tmp}"
 
 dryrun="false"
-[[ "$1" == "-d" ]] && dryrun="true" && shift
+
+#while getopts ":d" opt; do
+#	case $opts in
+#		d)
+#			dryrun="true"
+#			;;
+#		\?)
+#			echo "Invalid option: $opt" >&2
+#			exit 1
+#			;;
+#	esac
+#done
+
+
+[[ "$1" == "-d" ]] && dryrun="true"  && shift
 
 master=$1; shift
 master_md5s="${tmp}/master.md5s"
@@ -18,6 +31,16 @@ uniq_count=0
 function makeHashes() {
 	local path=$1
 	local stdout=$2
+	[[ -e "${path}" ]] || { echo "Directory ${path} doesn't exist" && exit 1 ; }
+	local abs_path=$(readlink -e "$path") || { echo "Failed to readlink ${path}" && exit 1 ; }
+	echo "${abs_path}" >> ${tmp}/abs_paths
+
+	echo "000"
+	cat ${tmp}/abs_paths
+	echo "---"
+
+	[[ $(grep "${abs_path}" ${tmp}/abs_paths | wc -l) == 1 ]] || { echo "Master path and duplicate(s) path are the same!" && exit 1; }
+
 	echo "Generating hashes for ${path} into ${stdout}"
 	which parallel &>/dev/null || { echo "Failed to find gnu parallel on PATH, is it installed??" && exit 1 ; }
 	which md5sum &>/dev/null && 
