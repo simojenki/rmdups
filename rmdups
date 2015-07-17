@@ -31,7 +31,8 @@ function makeHashes() {
 	local path=$1
 	local stdout=$2
 	[[ -e "${path}" ]] || { echo "Directory ${path} doesn't exist" && exit 1 ; }
-	local abs_path=$(readlink -f "$path") || { echo "Failed to readlink ${path}" && exit 1 ; }
+	local abs_path="$(readlink -f "$path")"
+	[[ $? == "0" ]] || { echo "Failed to readlink ${path}" && exit 1 ; }
 	echo "${abs_path}" >> ${tmp}/abs_paths
 
 	[[ $(grep "${abs_path}" ${tmp}/abs_paths | wc -l) == 1 ]] || { echo "Master path and duplicate(s) path are the same!" && exit 1; }
