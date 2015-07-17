@@ -1,23 +1,22 @@
 #!/usr/bin/env bash
 
-tmp=$(mktemp -d)
-trap "rm -Rf ${tmp}" EXIT
-echo "Using tmp dir ${tmp}"
-
+usage="Usage: $0 [-d dry run] [-h help] MASTER_PATH DUPLICATES_PATH..."
 dryrun="false"
 
 while getopts ":d" opt; do
 	case $opt in
-		d)
-			dryrun="true"
-			;;
-		\?)
-			echo "Invalid option: $opt" >&2
-			exit 1
-			;;
+		d) dryrun="true";;
+		h) echo ${usage}; exit 0;;
+		\?) echo ${usage}; exit 1;;
 	esac
 done
 shift $(( OPTIND - 1 ))
+
+[[ "$#" -gt 1 ]] || { echo ${usage} && exit 1 ; }
+
+tmp=$(mktemp -d)
+trap "rm -Rf ${tmp}" EXIT
+echo "Using tmp dir ${tmp}"
 
 master=$1; shift
 master_md5s="${tmp}/master.md5s"

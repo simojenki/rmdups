@@ -177,6 +177,17 @@ function runningItWithAMasterPathSameAsADuplicatePathCausesItToDie3() {
 	assert_matches "${out}" "Master path and duplicate(s) path are the same!"				
 }
 
+function calledWithNotEnoughArgsCausesItToDie() {
+	out=$(./rmdups -d ${master} 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Usage: .* MASTER_PATH"				
+}
+
+function calledWithNotEnoughArgsCausesItToDie2() {
+	out=$(./rmdups -d 2>&1)
+	assert_eq $? 1
+	assert_matches "${out}" "Usage: .* MASTER_PATH"				
+}
 
 testSimpleCaseWithNoDirectories
 cleanup
@@ -192,7 +203,9 @@ runningItWithAMasterPathSameAsADuplicatePathCausesItToDie2
 cleanup
 runningItWithAMasterPathSameAsADuplicatePathCausesItToDie3
 cleanup
-
+calledWithNotEnoughArgsCausesItToDie
+cleanup
+calledWithNotEnoughArgsCausesItToDie2
 
 print_test_summary
 [[ ${failed} == 0 ]] && exit 0 || exit 1
