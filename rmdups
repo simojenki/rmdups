@@ -43,7 +43,7 @@ function makeHashes() {
 		find "${path}" -type f | parallel --jobs +2 --eta md5sum {} 1> "${stdout}" 2>/dev/null ||
 		find "${path}" -type f | parallel --jobs +2 --eta md5 -r {} 1> "${stdout}" 2>/dev/null
 	[[ $(cat "${stdout}" | wc -l) -gt 0 ]] || { echo "Created no hashes, aborting, this doesn't seem right" && exit 1 ; }		
-	echo "Total files in '${path}' == $(cat "${stdout}" | wc -l)"
+	echo "Total files in '${path}' == $(cat "${stdout}" | wc -l | sed -e "s/${hash}[[:space:]]*//")"
 }
 function duplicate() {	
 	local dup=$1
