@@ -4,6 +4,10 @@ tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
 trap "rm -Rf ${tmp}" EXIT
 
+master=${tmp}/master
+dup1=${tmp}/dup1
+dup2="${tmp}/dup2"
+
 passed=0
 failed=0
 
@@ -37,10 +41,6 @@ function assert_ne() {
 function assert_matches() {
 	echo "$1" | grep -G "$2" &>/dev/null && pass "$1 matches $2" || fail "Expected '$1' to match '$2'."
 }
-
-master=${tmp}/master
-dup1=${tmp}/dup1
-dup2="${tmp}/dup 2"
 
 function mkf() {
 	local content="$1"; shift
