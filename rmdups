@@ -46,10 +46,11 @@ function makeHashes() {
 }
 function duplicate() {	
 	let dup_count+=1
-	if [[ "${dryrun}" == "false" ]]; then 
-		let rm_count+=1
-		[[ "${verbose}" == "false" ]] && rm "$1" || rm -v "$1"
-	fi		
+	if [[ "${dryrun}" == "false" ]]; then
+		 let rm_count+=1
+		 rm "$1"
+	fi		 		
+	if [[ "${verbose}" == "true" ]]; then echo "removed $1."; fi
 }
 function unqiue() {	let uniq_count+=1; }
 

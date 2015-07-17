@@ -102,8 +102,8 @@ function testSimpleCaseWithNoDirectoriesAndVerboseEnabled() {
 				"${dup2}/simple.jpg"
 	
 	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
-	assert_matches "${out}" "removed .${dup1}/simple."
-	assert_matches "${out}" "removed .${dup2}/simple.jpg."
+	assert_matches "${out}" "removed ${dup1}/simple."
+	assert_matches "${out}" "removed ${dup2}/simple.jpg."
 }
 
 function testCaseWithDirectories() {
@@ -161,6 +161,37 @@ function testUsingDryRunDoesntDeleteAnything() {
 				"${dup2}/directory3/keep.txt"
 				
 	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
+}
+
+function testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose() {
+	mkf "dirs"	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob"
+
+	mkf "keep"  "${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	assert_e	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	out=$(./rmdups -v -d "${master}" "${dup1}" "${dup2}" 2>&1)
+
+	assert_e	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+				
+	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
+	assert_matches "${out}" "removed ${dup1}/directory/file1."
+	assert_matches "${out}" "removed ${dup2}/directory2/file1.jpg."
+	assert_matches "${out}" "removed ${dup2}/directory3/file1.bob."
 }
 
 function runningItWithAMasterDirectoryThatDoesntExistFails() {
@@ -225,6 +256,8 @@ cleanup
 testCaseWithDirectories
 cleanup
 testUsingDryRunDoesntDeleteAnything
+cleanup
+testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose
 cleanup
 runningItWithAMasterDirectoryThatDoesntExistFails
 cleanup
