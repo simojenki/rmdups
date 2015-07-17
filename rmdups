@@ -35,7 +35,7 @@ function makeHashes() {
 	[[ $? == "0" ]] || { echo "Failed to readlink ${path}" && exit 1 ; }
 	echo "${abs_path}" >> ${tmp}/abs_paths
 
-	[[ $(grep "${abs_path}" ${tmp}/abs_paths | wc -l) == 1 ]] || { echo "Master path and duplicate(s) path are the same!" && exit 1; }
+	[[ "$(grep "${abs_path}" ${tmp}/abs_paths | wc -l | sed -e 's/[[:space:]]*//')" == "1" ]] || { echo "Master path and duplicate(s) path are the same!" && exit 1; }
 
 	echo "Generating hashes for ${path} into ${stdout}"
 	which parallel &>/dev/null || { echo "Failed to find gnu parallel on PATH, is it installed??" && exit 1 ; }
