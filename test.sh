@@ -102,8 +102,8 @@ function testSimpleCaseWithNoDirectoriesAndVerboseEnabled() {
 				"${dup2}/simple.jpg"
 	
 	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
-	assert_matches "${out}" "removed ${dup1}/simple."
-	assert_matches "${out}" "removed ${dup2}/simple.jpg."
+	assert_matches "${out}" "removed ${dup1}/simple as duplicate of ${master}/simple"
+	assert_matches "${out}" "removed ${dup2}/simple.jpg as duplicate of ${master}/simple"
 }
 
 function testCaseWithDirectories() {
@@ -189,9 +189,9 @@ function testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose() {
 				"${dup2}/directory3/keep.txt"
 				
 	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
-	assert_matches "${out}" "removed ${dup1}/directory/file1."
-	assert_matches "${out}" "removed ${dup2}/directory2/file1.jpg."
-	assert_matches "${out}" "removed ${dup2}/directory3/file1.bob."
+	assert_matches "${out}" "removed ${dup1}/directory/file1 as duplicate of ${master}/file1"
+	assert_matches "${out}" "removed ${dup2}/directory2/file1.jpg as duplicate of ${master}/file1"
+	assert_matches "${out}" "removed ${dup2}/directory3/file1.bob as duplicate of ${master}/file1"
 }
 
 function runningItWithAMasterDirectoryThatDoesntExistFails() {

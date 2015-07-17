@@ -45,12 +45,15 @@ function makeHashes() {
 	echo "Total files in '${path}' == $(cat "${stdout}" | wc -l)"
 }
 function duplicate() {	
+	local dup=$1
+	local master=$2
+	
 	let dup_count+=1
 	if [[ "${dryrun}" == "false" ]]; then
 		 let rm_count+=1
-		 rm "$1"
+		 rm "${dup}"
 	fi		 		
-	if [[ "${verbose}" == "true" ]]; then echo "removed $1."; fi
+	if [[ "${verbose}" == "true" ]]; then echo "removed ${dup} as duplicate of ${master}"; fi
 }
 function unqiue() {	let uniq_count+=1; }
 
@@ -63,7 +66,10 @@ while (( "$#" )); do
 	while read i; do 
 		hash="$(echo "$i" | cut -d ' ' -f 1)"
 		file="$(echo "$i" | sed -e "s/${hash}[[:space:]]*//")"
-		grep "${hash}" "${master_md5s}" &>/dev/null && duplicate "${file}" || unqiue "${file}"
+		match="$(grep -P "^${hash}\s.*$" "${master_md5s}")"
+		[[ $? == "0" ]] \
+			&& duplicate "${file}" "$(echo "${match}" | sed -e "s/${hash}[[:space:]]*//")" \
+			|| unqiue "${file}"
 	done < "${dup_md5s}"
 done
 
