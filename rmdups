@@ -67,7 +67,7 @@ while (( "$#" )); do
 	while read i; do 
 		hash="$(echo "$i" | cut -d ' ' -f 1)"
 		file="$(echo "$i" | sed -e "s/${hash}[[:space:]]*//")"
-		match="$(grep -P "^${hash}\s.*$" "${master_md5s}")"
+		match="$(grep -e "^${hash}\s.*$" "${master_md5s}")"
 		[[ $? == "0" ]] \
 			&& duplicate "${file}" "$(echo "${match}" | sed -e "s/${hash}[[:space:]]*//")" \
 			|| unqiue "${file}"
