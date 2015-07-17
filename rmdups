@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 tmp=$(mktemp -d)
-#trap "rm -Rf ${tmp}" EXIT
+trap "rm -Rf ${tmp}" EXIT
 
 echo "Using tmp dir ${tmp}"
 
@@ -19,13 +19,16 @@ function makeHashes() {
 	local path=$1
 	local stdout=$2
 	echo "Generating hashes for ${path} into ${stdout}"
+	which parallel &>/dev/null || { echo "Failed to find gnu parallel on PATH, is it installed??" && exit 1 ; }
 	which md5sum &>/dev/null && 
 		find "${path}" -type f | parallel --jobs +2 --eta md5sum {} 1> "${stdout}" 2>/dev/null ||
-		find "${path}" -type f | parallel --jobs +2 --eta md5 -r {} 1> "${stdout}" 2>/dev/null		
+		find "${path}" -type f | parallel --jobs +2 --eta md5 -r {} 1> "${stdout}" 2>/dev/null
+	[[ $(cat "${stdout}" | wc -l) -gt 0 ]] || { echo "Created no hashes, aborting, this doesn't seem right" && exit 1 ; }		
 	echo "Total files in '${path}' == $(cat "${stdout}" | wc -l)"
 }
 function duplicate() {	
 	let dup_count+=1
+	echo "dry run == ${dryrun}"
 	if [[ "${dryrun}" == "false" ]]; then let rm_count+=1 && rm "$1"; fi		
 }
 function unqiue() {	let uniq_count+=1; }
