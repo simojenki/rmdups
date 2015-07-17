@@ -171,8 +171,10 @@ function runningItWithAMasterDirectoryThatDoesntExistFails() {
 }
 
 function runningItWithADuplicateDirectoryThatDoesntExistFails() {
-	mkdir -p ${tmp}/exists
-	out=$(./rmdups ${tmp}/exists ${tmp}/path/that/doesnt/exist 2>&1)
+	mkf "file1"	"${master}/file1" \
+				"${dup1}/file1" 
+
+	out=$(./rmdups ${master} ${tmp}/path/that/doesnt/exist 2>&1)
 	assert_eq $? 1
 	assert_matches "${out}" "Directory ${tmp}/path/that/doesnt/exist doesn't exist"				
 }
@@ -225,6 +227,8 @@ cleanup
 testUsingDryRunDoesntDeleteAnything
 cleanup
 runningItWithAMasterDirectoryThatDoesntExistFails
+cleanup
+runningItWithADuplicateDirectoryThatDoesntExistFails
 cleanup
 runningItWithAMasterPathSameAsADuplicatePathCausesItToDie
 cleanup
