@@ -6,20 +6,18 @@ echo "Using tmp dir ${tmp}"
 
 dryrun="false"
 
-#while getopts ":d" opt; do
-#	case $opts in
-#		d)
-#			dryrun="true"
-#			;;
-#		\?)
-#			echo "Invalid option: $opt" >&2
-#			exit 1
-#			;;
-#	esac
-#done
-
-
-[[ "$1" == "-d" ]] && dryrun="true"  && shift
+while getopts ":d" opt; do
+	case $opt in
+		d)
+			dryrun="true"
+			;;
+		\?)
+			echo "Invalid option: $opt" >&2
+			exit 1
+			;;
+	esac
+done
+shift $(( OPTIND - 1 ))
 
 master=$1; shift
 master_md5s="${tmp}/master.md5s"
