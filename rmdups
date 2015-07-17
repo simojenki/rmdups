@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-usage="Usage: $0 [-d dry run] [-h help] MASTER_PATH DUPLICATES_PATH..."
+usage="Usage: $0 [-d dry run] [-h help] [-v verbose] MASTER_PATH DUPLICATES_PATH..."
 dryrun="false"
+verbose="false"
 
-while getopts ":d" opt; do
+while getopts ":dv" opt; do
 	case $opt in
 		d) dryrun="true";;
+		v) verbose="true";;
 		h) echo ${usage}; exit 0;;
 		\?) echo ${usage}; exit 1;;
 	esac
@@ -32,10 +34,6 @@ function makeHashes() {
 	local abs_path=$(readlink -e "$path") || { echo "Failed to readlink ${path}" && exit 1 ; }
 	echo "${abs_path}" >> ${tmp}/abs_paths
 
-	echo "000"
-	cat ${tmp}/abs_paths
-	echo "---"
-
 	[[ $(grep "${abs_path}" ${tmp}/abs_paths | wc -l) == 1 ]] || { echo "Master path and duplicate(s) path are the same!" && exit 1; }
 
 	echo "Generating hashes for ${path} into ${stdout}"
@@ -48,8 +46,10 @@ function makeHashes() {
 }
 function duplicate() {	
 	let dup_count+=1
-	echo "dry run == ${dryrun}"
-	if [[ "${dryrun}" == "false" ]]; then let rm_count+=1 && rm "$1"; fi		
+	if [[ "${dryrun}" == "false" ]]; then 
+		let rm_count+=1
+		[[ "${verbose}" == "false" ]] && rm "$1" || rm -v "$1"
+	fi		
 }
 function unqiue() {	let uniq_count+=1; }
 

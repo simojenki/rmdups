@@ -78,6 +78,33 @@ function testSimpleCaseWithNoDirectories() {
 	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
 }
 
+function testSimpleCaseWithNoDirectoriesAndVerboseEnabled() {
+	mkf "simple"	"${master}/simple" \
+					"${dup1}/simple" \
+					"${dup2}/simple.jpg"
+
+	mkf "toKeep"	"${dup1}/fileToKeep1" \
+					"${dup2}/fileToKeep2"
+
+	assert_e	"${master}/simple" \
+				"${dup1}/simple" \
+				"${dup1}/fileToKeep1" \
+				"${dup2}/fileToKeep2" \
+				"${dup2}/simple.jpg"
+
+	out=$(./rmdups -v "${master}" "${dup1}" "${dup2}" 2>&1)
+
+	assert_e	"${master}/simple" \
+				"${dup1}/fileToKeep1" \
+				"${dup2}/fileToKeep2"
+
+	assert_ne	"${dup1}/simple" \
+				"${dup2}/simple.jpg"
+	
+	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
+	assert_matches "${out}" "removed .${dup1}/simple."
+	assert_matches "${out}" "removed .${dup2}/simple.jpg."
+}
 
 function testCaseWithDirectories() {
 	mkf "dirs"	"${master}/file1" \
@@ -190,6 +217,8 @@ function calledWithNotEnoughArgsCausesItToDie2() {
 }
 
 testSimpleCaseWithNoDirectories
+cleanup
+testSimpleCaseWithNoDirectoriesAndVerboseEnabled
 cleanup
 testCaseWithDirectories
 cleanup
