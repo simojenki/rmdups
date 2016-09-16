@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+set -o errexit
+set -o nounset
+set -o pipefail
+
+
 tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
 trap "rm -Rf ${tmp}" EXIT
