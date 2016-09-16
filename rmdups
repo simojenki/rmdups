@@ -62,7 +62,7 @@ function duplicate() {
 		echo "removed ${dup} as duplicate of ${master}"
 	fi
 }
-function unqiue() {	let uniq_count+=1; }
+function unqiue() { let uniq_count+=1; }
 
 makeHashes "${master}" "${master_md5s}" || exit 1
 
