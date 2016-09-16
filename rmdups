@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-#set -o errexit
-#set -o pipefail
+set -o errexit
+set -o pipefail
 set -o nounset
 
 usage="Usage: $0 [-d dry run] [-h help] [-v verbose] MASTER_PATH DUPLICATES_PATH..."
