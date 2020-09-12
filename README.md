@@ -4,6 +4,8 @@ bash script for finding and removing duplicate files between a master directory 
 
 Files are deemed duplicates if their md5 checksums are the same.
 
+Concurrency is achieved using gnu parallel.
+
 ## Examples
 
 ### Compare a master directory with 2 directories containing possible duplicates, removing all duplicates
@@ -22,4 +24,14 @@ Files are deemed duplicates if their md5 checksums are the same.
 
 ```shell
 ./rmdups -d /master /duplicates
+```
+
+## Pre-requisites
+
+### gnu-parallel
+
+### Installation on ubuntu
+
+```shell
+sudo apt-get install parallel
 ```
