@@ -8,7 +8,7 @@ echo "Using tmp dir ${tmp}"
 trap "rm -Rf ${tmp}" EXIT
 
 master=${tmp}/master
-dup1=${tmp}/dup1
+dup1="${tmp}/dup1"
 dup2="${tmp}/dup2"
 
 passed=0
