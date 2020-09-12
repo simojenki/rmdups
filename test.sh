@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-set -o errexit
 set -o nounset
 set -o pipefail
-
 
 tmp=$(mktemp -d)
 echo "Using tmp dir ${tmp}"
@@ -254,29 +252,25 @@ function calledWithNotEnoughArgsCausesItToDie2() {
 	assert_matches "${out}" "Usage: .* MASTER_PATH"				
 }
 
-testSimpleCaseWithNoDirectories
-cleanup
-testSimpleCaseWithNoDirectoriesAndVerboseEnabled
-cleanup
-testCaseWithDirectories
-cleanup
-testUsingDryRunDoesntDeleteAnything
-cleanup
-testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose
-cleanup
-runningItWithAMasterDirectoryThatDoesntExistFails
-cleanup
-runningItWithADuplicateDirectoryThatDoesntExistFails
-cleanup
-runningItWithAMasterPathSameAsADuplicatePathCausesItToDie
-cleanup
-runningItWithAMasterPathSameAsADuplicatePathCausesItToDie2
-cleanup
-runningItWithAMasterPathSameAsADuplicatePathCausesItToDie3
-cleanup
-calledWithNotEnoughArgsCausesItToDie
-cleanup
-calledWithNotEnoughArgsCausesItToDie2
+function runTest() {
+	testName=$1
+	echo "Executing test case $testName"
+	cleanup
+	$testName
+}
+
+runTest "testSimpleCaseWithNoDirectories"
+runTest "testSimpleCaseWithNoDirectoriesAndVerboseEnabled"
+runTest "testCaseWithDirectories"
+runTest "testUsingDryRunDoesntDeleteAnything"
+runTest "testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose"
+runTest "runningItWithAMasterDirectoryThatDoesntExistFails"
+runTest "runningItWithADuplicateDirectoryThatDoesntExistFails"
+runTest "runningItWithAMasterPathSameAsADuplicatePathCausesItToDie"
+runTest "runningItWithAMasterPathSameAsADuplicatePathCausesItToDie2"
+runTest "runningItWithAMasterPathSameAsADuplicatePathCausesItToDie3"
+runTest "calledWithNotEnoughArgsCausesItToDie"
+runTest "calledWithNotEnoughArgsCausesItToDie2"
 
 print_test_summary
 [[ ${failed} == 0 ]] && exit 0 || exit 1
