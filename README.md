@@ -1,6 +1,6 @@
 # rmdups
 
-Compares directies of files, removing duplicates already contained within a master directory. 
+Compares directies of files, removing duplicates already contained within a master directory.
 
 - md5 checksum comparison
 - Recursive
