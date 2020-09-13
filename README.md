@@ -1,20 +1,21 @@
 # rmdups
 
-bash script for finding and removing duplicate files between a master directory and n directories containing possible duplicates;
+Compares directies of files, removing duplicates already contained within a master directory. 
 
-Files are deemed duplicates if their md5 checksums are the same.
-
-Concurrency is achieved using gnu parallel.
+- md5 checksum comparison
+- Recursive
+- Dry Run
+- Concurrency using gnu parallel
 
 ## Examples
 
-### Compare a master directory with 2 directories containing possible duplicates, removing all duplicates
+### Compare a master directory with 2 other directories containing possible duplicates, removing all duplicates
 
 ```shell
 ./rmdups /master /duplicates1 /duplicates2
 ```
 
-### Compare a master directory with 2 directories containing possible duplicates, removing all duplicates, with verbose enabled
+### Compare a master directory with 2 other directories containing possible duplicates, removing all duplicates, with verbose enabled
 
 ```shell
 ./rmdups -v /master /duplicates1 /duplicates2
