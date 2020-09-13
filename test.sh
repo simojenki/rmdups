@@ -34,6 +34,18 @@ function assert_e() {
 	done
 }
 
+function assert_c() {
+	local expected="$1"; shift
+	while (( "$#" )); do
+		local file="$1"; shift
+		if [ -e "${file}" ]; then
+			[[  $(cat ${file}) == "${expected}" ]] && pass "${file} contains '${expected}'" || fail "Expected ${file} to contain '${expected}', but has '$(cat ${file})'"
+		else
+			fail "Expected ${file} to contain '${expected}', but file doesnt exist"
+		fi
+	done
+}
+
 function assert_ne() {
 	while (( "$#" )); do
 		local file=$1; shift	
@@ -78,6 +90,50 @@ function testSimpleCaseWithNoDirectories() {
 	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 	
+	assert_c "simple" 	"${master}/simple"
+
+	assert_c "toKeep" 	"${dup1}/fileToKeep1" \
+						"${dup2}/fileToKeep2"
+
+	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
+}
+
+function testWhereThereAreDuplicatesInTheMasterDirectoryDoesNotRemoveThem() {
+	mkf "content"	"${master}/master-copy1" \
+					"${master}/master-copy2" \
+					"${master}/some-dir/master-copy3" \
+					"${dup1}/duplicate1" \
+					"${dup1}/duplicate2"
+
+	mkf "toKeep"	"${dup1}/fileToKeep1" \
+					"${dup2}/fileToKeep2"
+
+	assert_e	"${master}/master-copy1" \
+				"${master}/master-copy2" \
+				"${master}/some-dir/master-copy3" \
+				"${dup1}/duplicate1" \
+				"${dup1}/duplicate2" \
+				"${dup1}/fileToKeep1" \
+				"${dup2}/fileToKeep2"
+
+	out=$(./rmdups "${master}" "${dup1}" "${dup2}" 2>&1)
+
+	assert_e	"${master}/master-copy1" \
+				"${master}/master-copy2" \
+				"${master}/some-dir/master-copy3" \
+				"${dup1}/fileToKeep1" \
+				"${dup2}/fileToKeep2"
+
+	assert_ne	"${dup1}/duplicate1" \
+				"${dup1}/duplicate2"
+	
+	assert_c "content"	"${master}/master-copy1" \
+						"${master}/master-copy2" \
+						"${master}/some-dir/master-copy3"
+
+	assert_c "toKeep"	"${dup1}/fileToKeep1" \
+						"${dup2}/fileToKeep2"
+
 	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
 }
 
@@ -104,16 +160,21 @@ function testSimpleCaseWithNoDirectoriesAndVerboseEnabled() {
 	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 	
+	assert_c "simple"	"${master}/simple"
+
+	assert_c "toKeep"	"${dup1}/fileToKeep1" \
+						"${dup2}/fileToKeep2"
+
 	assert_matches "${out}" "Total files processed = 4, duplicates = 2, unique files = 2, removed = 2"
 	assert_matches "${out}" "removed ${dup1}/simple as duplicate of ${master}/simple"
 	assert_matches "${out}" "removed ${dup2}/simple.jpg as duplicate of ${master}/simple"
 }
 
 function testCaseWithDirectories() {
-	mkf "dirs"	"${master}/file1" \
-				"${dup1}/directory/file1" \
-				"${dup2}/directory2/file1.jpg" \
-				"${dup2}/directory3/file1.bob"
+	mkf "has-dups"	"${master}/file1" \
+					"${dup1}/directory/file1" \
+					"${dup2}/directory2/file1.jpg" \
+					"${dup2}/directory3/file1.bob"
 
 	mkf "keep"  "${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
@@ -134,8 +195,62 @@ function testCaseWithDirectories() {
 	assert_ne	"${dup1}/directory/file1" \
 				"${dup2}/directory2/file1.jpg" \
 				"${dup2}/directory3/file1.bob"
+
+	assert_c "has-dups" "${master}/file1"
+
+	assert_c "keep" 	"${dup1}/directory/keep1" \
+						"${dup2}/directory3/keep.txt"
 				
 	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 3"				
+}
+
+function testCaseWithMultipleFilesInMultipleDirectories() {
+	mkf "file1"	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob"
+
+	mkf "file2"	"${master}/file2" \
+				"${dup1}/directory/file2" \
+				"${dup2}/directory2/file2.jpg" \
+				"${dup2}/directory3/file2.bob"
+
+	mkf "keep"  "${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	assert_e 	"${master}/file1" \
+				"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob" \
+				"${master}/file2" \
+				"${dup1}/directory/file2" \
+				"${dup2}/directory2/file2.jpg" \
+				"${dup2}/directory3/file2.bob" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	out=$(./rmdups "${master}" "${dup1}" "${dup2}" 2>&1)
+
+	assert_e 	"${master}/file1" \
+				"${master}/file2" \
+				"${dup1}/directory/keep1" \
+				"${dup2}/directory3/keep.txt"
+
+	assert_ne 	"${dup1}/directory/file1" \
+				"${dup2}/directory2/file1.jpg" \
+				"${dup2}/directory3/file1.bob" \
+				"${dup1}/directory/file2" \
+				"${dup2}/directory2/file2.jpg" \
+				"${dup2}/directory3/file2.bob"
+
+	assert_c "file1"	"${master}/file1"
+
+	assert_c "file2"	"${master}/file2" 
+
+	assert_c "keep"  	"${dup1}/directory/keep1" \
+						"${dup2}/directory3/keep.txt"
+
+	assert_matches "${out}" "Total files processed = 8, duplicates = 6, unique files = 2, removed = 6"				
 }
 
 function testUsingDryRunDoesntDeleteAnything() {
@@ -162,7 +277,15 @@ function testUsingDryRunDoesntDeleteAnything() {
 				"${dup2}/directory3/file1.bob" \
 				"${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
-				
+
+	assert_c "dirs" 	"${master}/file1" \
+						"${dup1}/directory/file1" \
+						"${dup2}/directory2/file1.jpg" \
+						"${dup2}/directory3/file1.bob"
+
+	assert_c "keep"  	"${dup1}/directory/keep1" \
+						"${dup2}/directory3/keep.txt"
+
 	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
 }
 
@@ -190,7 +313,15 @@ function testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose() {
 				"${dup2}/directory3/file1.bob" \
 				"${dup1}/directory/keep1" \
 				"${dup2}/directory3/keep.txt"
-				
+
+	assert_c "dirs"	"${master}/file1" \
+					"${dup1}/directory/file1" \
+					"${dup2}/directory2/file1.jpg" \
+					"${dup2}/directory3/file1.bob"
+
+	assert_c "keep" "${dup1}/directory/keep1" \
+					"${dup2}/directory3/keep.txt"
+
 	assert_matches "${out}" "Total files processed = 5, duplicates = 3, unique files = 2, removed = 0 (dry run)"				
 	assert_matches "${out}" "removed ${dup1}/directory/file1 as duplicate of ${master}/file1"
 	assert_matches "${out}" "removed ${dup2}/directory2/file1.jpg as duplicate of ${master}/file1"
@@ -261,6 +392,8 @@ function runTest() {
 
 runTest "testSimpleCaseWithNoDirectories"
 runTest "testSimpleCaseWithNoDirectoriesAndVerboseEnabled"
+runTest "testCaseWithMultipleFilesInMultipleDirectories"
+runTest "testWhereThereAreDuplicatesInTheMasterDirectoryDoesNotRemoveThem"
 runTest "testCaseWithDirectories"
 runTest "testUsingDryRunDoesntDeleteAnything"
 runTest "testUsingDryRunWithVerboseDoesntDeleteAnythingButStillIsVerbose"

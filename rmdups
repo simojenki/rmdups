@@ -31,6 +31,8 @@ dup_count=0
 rm_count=0
 uniq_count=0
 
+which parallel &>/dev/null || { echo "Failed to find gnu parallel on PATH, is it installed??" && exit 1 ; }
+
 function makeHashes() {
 	local path=$1
 	local stdout=$2
@@ -42,7 +44,6 @@ function makeHashes() {
 	[[ "$(grep "${abs_path}" ${tmp}/abs_paths | wc -l | sed -e 's/[[:space:]]*//')" == "1" ]] || { echo "Master path and duplicate(s) path are the same!" && exit 1; }
 
 	echo "Generating hashes for ${path} into ${stdout}"
-	which parallel &>/dev/null || { echo "Failed to find gnu parallel on PATH, is it installed??" && exit 1 ; }
 	which md5sum &>/dev/null && 
 		find "${path}" -type f | parallel --jobs +2 --eta md5sum {} 1> "${stdout}" ||
 		find "${path}" -type f | parallel --jobs +2 --eta md5 -r {} 1> "${stdout}"
