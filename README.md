@@ -6,6 +6,7 @@ Compares directies of files, removing duplicates already contained within a mast
 - Recursive
 - Dry Run
 - Concurrency using gnu parallel
+- Tested, in bash!
 
 ## Examples
 
