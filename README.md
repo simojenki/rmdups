@@ -14,16 +14,16 @@ Compares a single master directory with multiple secondary directories, files th
 
 ## Examples
 
-### Compare a master directory with 2 other directories containing possible duplicates, removing all duplicates
+### Compare a master directory with 2 other directories containing possible duplicates, removing any duplicates found in /duplicates1 or /duplicates2
 
 ```shell
 ./rmdups /master /duplicates1 /duplicates2
 ```
 
-### Compare a master directory with 2 other directories containing possible duplicates, removing all duplicates, with verbose enabled
+### Compare a master directory with another directory containing possible duplicates, removing all duplicates, with verbose enabled
 
 ```shell
-./rmdups -v /master /duplicates1 /duplicates2
+./rmdups -v /master /some-directory-that-might-have-duplicates
 ```
 
 ### Compare a master directory with a directory containing possible duplicates, however perform a dry run and do not delete anything
