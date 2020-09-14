@@ -90,7 +90,7 @@ function testSimpleCaseWithNoDirectories() {
 	assert_ne	"${dup1}/simple" \
 				"${dup2}/simple.jpg"
 	
-	assert_c "simple" 	"${master}/simple"
+	assert_c "simple1" 	"${master}/simple"
 
 	assert_c "toKeep" 	"${dup1}/fileToKeep1" \
 						"${dup2}/fileToKeep2"
