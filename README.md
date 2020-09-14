@@ -2,6 +2,8 @@
 
 Finds and removes duplicate files.
 
+![Tests](https://github.com/simojenki/rmdups/workflows/CI/badge.svg)
+
 Compares a single master directory with multiple secondary directories, files that are present in both a secondary directory and the master result in the secondary directories file being removed.
 
 - md5 checksum comparison
